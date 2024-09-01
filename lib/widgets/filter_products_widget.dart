@@ -15,19 +15,19 @@ filterProductSheet(BuildContext context,
   List categories = [
     {
       "selected": false,
-      "category": context.read<ProductSate>().categories[0],
+      "category": context.read<ProductState>().categories[0],
     },
     {
       "selected": false,
-      "category": context.read<ProductSate>().categories[1],
+      "category": context.read<ProductState>().categories[1],
     },
     {
       "selected": false,
-      "category": context.read<ProductSate>().categories[2],
+      "category": context.read<ProductState>().categories[2],
     },
     {
       "selected": false,
-      "category": context.read<ProductSate>().categories[3],
+      "category": context.read<ProductState>().categories[3],
     },
   ];
 
@@ -68,14 +68,14 @@ filterProductSheet(BuildContext context,
                         ),
                         ListView.builder(
                           shrinkWrap: true,
-                          itemCount: context.read<ProductSate>().categories.length,
+                          itemCount: context.read<ProductState>().categories.length,
                             itemBuilder: (ctx, i) {
                           return CheckboxListTile(
                               value: categories[i]["selected"],
                               controlAffinity: ListTileControlAffinity.leading,
                               title: Text(categories[i]["category"]),
                               onChanged: (val) {
-                                context.read<ProductSate>().filtered(categories, i, val!);
+                                context.read<ProductState>().filtered(categories, i, val!);
                                 setState((){
                                   index = i;
                                   applied = val;
@@ -86,7 +86,7 @@ filterProductSheet(BuildContext context,
                           padding: const EdgeInsets.symmetric(vertical: 30),
                           child: Center(
                             child: ElevatedButton(onPressed: () {
-                              context.read<ProductSate>().applyFilter(categories, index, applied);
+                              context.read<ProductState>().applyFilter(categories, index, applied);
                               Navigator.pop(context);
                             },
                                 style: ElevatedButton.styleFrom(

@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:product_catalog_app/adapter/boxes.dart';
 import 'package:product_catalog_app/adapter/product.dart';
 import 'package:product_catalog_app/functions/select_image.dart';
+import 'package:product_catalog_app/models/product.dart';
+import 'package:provider/provider.dart';
 
 editProductSheet(BuildContext context,
     String name,
@@ -12,6 +14,7 @@ editProductSheet(BuildContext context,
     String category,
     Uint8List image,
     int i,
+    List? filteredProducts,
     Function? save
     ) {
 
@@ -185,6 +188,25 @@ editProductSheet(BuildContext context,
                                       image: img.isEmpty ? image : File(img).readAsBytesSync(),
                                       price: priceController.text));
                                 });
+                                if(filteredProducts!.isNotEmpty) {
+                                  setState(() {});
+                                  filteredProducts[i].name = nameController.text;
+                                  filteredProducts[i].description = descriptionController.text;
+                                  filteredProducts[i].category = categoryController.text;
+                                  filteredProducts[i].price = priceController.text;
+                                  filteredProducts[i].image = img.isEmpty
+                                      ? image
+                                      : File(img).readAsBytesSync();
+                                  boxProducts.putAt(i, Product(
+                                      name: filteredProducts[i].name,
+                                      description: filteredProducts[i].description,
+                                      category: filteredProducts[i].category,
+                                      image: filteredProducts[i].image,
+                                      price: filteredProducts[i].price));
+                                  Navigator.pop(context);
+                                  save?.call();
+                                  return;
+                                }
                                 Navigator.pop(context);
                                 save?.call();
                               },

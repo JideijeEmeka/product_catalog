@@ -43,6 +43,11 @@ Run project
   cd run
 ```
 
+Edit a product
+```bash
+  long press on any product to edit it
+```
+
 ### Notes on design decisions, optimizations, and trade-offs
 - The best and simplest user experience was chosen and implemented.
 - The best and simplest state management(Provider) was chosen and implemented.

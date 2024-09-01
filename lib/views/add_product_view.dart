@@ -121,7 +121,7 @@ class _AddProductViewState extends State<AddProductView> {
                             suffixIcon: DropdownButton<String>(
                               padding: const EdgeInsets.only(right: 20),
                               underline: const SizedBox(height: 0, width: 0,),
-                              items: context.read<ProductSate>().categories.map((String value) {
+                              items: context.read<ProductState>().categories.map((String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
                                   child: Text(value),
@@ -174,7 +174,7 @@ class _AddProductViewState extends State<AddProductView> {
                     Text(imageError, style: const TextStyle(color: Colors.red),),
                     Padding(
                       padding: const EdgeInsets.only(top: 20),
-                      child: context.watch<ProductSate>().isLoading
+                      child: context.watch<ProductState>().isLoading
                           ? const CircularProgressIndicator() :
                         ElevatedButton(onPressed: () {
                           if(_formKey.currentState!.validate()) {
@@ -184,7 +184,7 @@ class _AddProductViewState extends State<AddProductView> {
                               });
                               return;
                             }
-                            context.read<ProductSate>().setLoader(true);
+                            context.read<ProductState>().setLoader(true);
                             Future.delayed(const Duration(seconds: 2), () {
                               setState(() {
                                 boxProducts.put("add_${nameCon.text}",
@@ -200,7 +200,7 @@ class _AddProductViewState extends State<AddProductView> {
                               descriptionCon.clear();
                               categoryCon.clear();
                               priceCon.clear();
-                              context.read<ProductSate>().setLoader(false);
+                              context.read<ProductState>().setLoader(false);
                             });
                           }
                         },
@@ -229,8 +229,19 @@ class _AddProductViewState extends State<AddProductView> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Products",
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Products",
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),),
+                              Tooltip(
+                                  message: "Tap and hold on any product to edit it",
+                                  child: Padding(
+                                    padding: EdgeInsets.only(left: 3),
+                                    child: Icon(Icons.info_outline, size: 16),
+                                  ))
+                            ],
+                          ),
                           IconButton(onPressed: () {
                             filterProductSheet(context);
                           },
@@ -240,18 +251,18 @@ class _AddProductViewState extends State<AddProductView> {
                     ),
                     ListView.builder(
                       shrinkWrap: true,
-                      itemCount: context.watch<ProductSate>().filter
+                      itemCount: context.watch<ProductState>().filter
                          ? boxProducts.values.where((e) => e.category
-                           == context.watch<ProductSate>().selectedCategory).length
+                           == context.watch<ProductState>().selectedCategory).length
                          : boxProducts.length,
                       physics: const ScrollPhysics(),
                       itemBuilder: (ctx, i) {
                         List filteredProducts = boxProducts.values.where((e) => e.category
-                            == context.watch<ProductSate>().selectedCategory).toList();
+                            == context.watch<ProductState>().selectedCategory).toList();
                         Product product = boxProducts.getAt(i);
                         return ListTile(
                           onTap: () {
-                            if(context.read<ProductSate>().filter) {
+                            if(context.read<ProductState>().filter) {
                               Product filteredProduct = filteredProducts[i];
                               Navigator.push(context, PageTransition(
                                   type: PageTransitionType.rightToLeft,
@@ -266,27 +277,28 @@ class _AddProductViewState extends State<AddProductView> {
                           },
                           leading: CircleAvatar(
                             radius: 17,
-                            backgroundImage: context.watch<ProductSate>().filter
+                            backgroundImage: context.watch<ProductState>().filter
                                 ? MemoryImage(filteredProducts[i].image)
                                 : MemoryImage(product.image),
                             child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10)),
                           ),
-                          title: context.watch<ProductSate>().filter
+                          title: context.watch<ProductState>().filter
                             ? Text(filteredProducts[i].name.toUpperCase())
                             : Text(product.name.toUpperCase()),
-                          subtitle: context.watch<ProductSate>().filter
+                          subtitle: context.watch<ProductState>().filter
                               ? Text(filteredProducts[i].category.toUpperCase())
                               : Text(product.category),
                           onLongPress: () {
-                            if(context.read<ProductSate>().filter) {
+                            if(context.read<ProductState>().filter) {
                               Product filteredProduct = filteredProducts[i];
                               editProductSheet(context,
                                   filteredProduct.name,
                                   filteredProduct.description,
                                   filteredProduct.price,
                                   filteredProduct.category,
-                                  filteredProduct.image, i, () {
+                                  filteredProduct.image,
+                                  i, filteredProducts, () {
                                     setState(() {});
                                   });
                               return;
@@ -296,19 +308,20 @@ class _AddProductViewState extends State<AddProductView> {
                                 product.description,
                                 product.price,
                                 product.category,
-                                product.image, i, () {
+                                product.image,
+                                i, filteredProducts, () {
                                   setState(() {});
                             });
                           },
                           trailing: GestureDetector(
                               onTap: () {
                                 showAppDialog(context,
-                                    "Are you sure?",
-                                    "This action will delete this product", () {
-                                      setState(() {
-                                        boxProducts.deleteAt(i);
-                                      });
+                                  "Are you sure?",
+                                  "This action will delete this product", () {
+                                    setState(() {
+                                      boxProducts.deleteAt(i);
                                     });
+                                 });
                               },
                               child: const Icon(Icons.clear)),
                         );
@@ -318,27 +331,34 @@ class _AddProductViewState extends State<AddProductView> {
             ),
               boxProducts.isEmpty ? const SizedBox() :
               Padding(
-                padding: const EdgeInsets.only(left: 50, right: 50, top: 10, bottom: 30),
+                padding: const EdgeInsets.only(left: 40, right: 40, top: 10, bottom: 30),
                 child: ElevatedButton(onPressed: () {
                   showAppDialog(context,
                       "Are you sure?",
                       "This action will delete all products", () {
-                        setState(() {
-                          boxProducts.clear();
+                        context.read<ProductState>().setDeleteLoader(true);
+                        boxProducts.clear();
+                        Future.delayed(const Duration(seconds: 2), () {
+                          setState(() {});
+                          context.read<ProductState>().setDeleteLoader(false);
                         });
-                        setState(() {});
                       });},
                     style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.green),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(right: 4),
-                          child: Icon(Icons.delete),
-                        ),
-                        Text("Delete all products"),
-                      ],
+                    child: context.watch<ProductState>().isLoadingDelete
+                        ? const SizedBox(
+                          height: 25, width: 25,
+                          child: CircularProgressIndicator(
+                                backgroundColor: Colors.green))
+                        : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(right: 4),
+                              child: Icon(Icons.delete),
+                            ),
+                            Text("Delete all products"),
+                          ],
                     )),
               )
             ],
