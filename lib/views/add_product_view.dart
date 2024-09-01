@@ -8,6 +8,7 @@ import 'package:product_catalog_app/models/product.dart';
 import 'package:product_catalog_app/views/product_detail_view.dart';
 import 'package:product_catalog_app/widgets/dialog.dart';
 import 'package:product_catalog_app/widgets/edit_product_bottom_sheet.dart';
+import 'package:product_catalog_app/widgets/filter_products_widget.dart';
 import 'package:provider/provider.dart';
 
 class AddProductView extends StatefulWidget {
@@ -76,7 +77,7 @@ class _AddProductViewState extends State<AddProductView> {
                         child: TextFormField(
                           controller: descriptionCon,
                           keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.done,
+                          textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                             hintText: "describe the product",
                             label: Text("Description"),
@@ -120,8 +121,7 @@ class _AddProductViewState extends State<AddProductView> {
                             suffixIcon: DropdownButton<String>(
                               padding: const EdgeInsets.only(right: 20),
                               underline: const SizedBox(height: 0, width: 0,),
-                              items: <String>['Commodities', 'Edibles',
-                                'Beverages', 'Snacks'].map((String value) {
+                              items: context.read<ProductSate>().categories.map((String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
                                   child: Text(value),
@@ -214,7 +214,6 @@ class _AddProductViewState extends State<AddProductView> {
                 ),
               ),
             Container(
-              height: MediaQuery.of(context).size.height / 2,
               padding: const EdgeInsets.all(20),
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
@@ -225,18 +224,32 @@ class _AddProductViewState extends State<AddProductView> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 10),
-                      child: Text("Products",
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Products",
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),),
+                          IconButton(onPressed: () {
+                            filterProductSheet(context);
+                          },
+                              icon: const Icon(Icons.filter_alt_outlined))
+                        ],
+                      ),
                     ),
                     ListView.builder(
                       shrinkWrap: true,
-                      itemCount: boxProducts.length,
+                      itemCount: context.watch<ProductSate>().filter
+                         ? boxProducts.values.where((e) => e.category
+                           == context.watch<ProductSate>().selectedCategory).length
+                         : boxProducts.length,
                       physics: const ScrollPhysics(),
                       itemBuilder: (ctx, i) {
-                        Product product = boxProducts.getAt(i);
-                        print(boxProducts.watch(key: "add_${product.name}").contains(product.category));
+                        List filteredProducts = boxProducts.values.where((e) => e.category
+                            == context.watch<ProductSate>().selectedCategory).toList();
+                        Product product = context.watch<ProductSate>().filter
+                              ? filteredProducts[i] : boxProducts.getAt(i);
                         return ListTile(
                           onTap: () {
                             Navigator.push(context, PageTransition(
