@@ -76,7 +76,7 @@ class _AddProductViewState extends State<AddProductView> {
                         padding: const EdgeInsets.only(top: 15, bottom: 20),
                         child: TextFormField(
                           controller: descriptionCon,
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                             hintText: "describe the product",
@@ -248,10 +248,17 @@ class _AddProductViewState extends State<AddProductView> {
                       itemBuilder: (ctx, i) {
                         List filteredProducts = boxProducts.values.where((e) => e.category
                             == context.watch<ProductSate>().selectedCategory).toList();
-                        Product product = context.watch<ProductSate>().filter
-                              ? filteredProducts[i] : boxProducts.getAt(i);
+                        Product product = boxProducts.getAt(i);
                         return ListTile(
                           onTap: () {
+                            if(context.read<ProductSate>().filter) {
+                              Product filteredProduct = filteredProducts[i];
+                              Navigator.push(context, PageTransition(
+                                  type: PageTransitionType.rightToLeft,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: ProductDetailView(product: filteredProduct)));
+                              return;
+                            }
                             Navigator.push(context, PageTransition(
                                 type: PageTransitionType.rightToLeft,
                                 duration: const Duration(milliseconds: 300),
@@ -259,13 +266,31 @@ class _AddProductViewState extends State<AddProductView> {
                           },
                           leading: CircleAvatar(
                             radius: 17,
-                            backgroundImage: MemoryImage(product.image),
+                            backgroundImage: context.watch<ProductSate>().filter
+                                ? MemoryImage(filteredProducts[i].image)
+                                : MemoryImage(product.image),
                             child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10)),
                           ),
-                          title: Text(product.name.toUpperCase()),
-                          subtitle: Text(product.category),
+                          title: context.watch<ProductSate>().filter
+                            ? Text(filteredProducts[i].name.toUpperCase())
+                            : Text(product.name.toUpperCase()),
+                          subtitle: context.watch<ProductSate>().filter
+                              ? Text(filteredProducts[i].category.toUpperCase())
+                              : Text(product.category),
                           onLongPress: () {
+                            if(context.read<ProductSate>().filter) {
+                              Product filteredProduct = filteredProducts[i];
+                              editProductSheet(context,
+                                  filteredProduct.name,
+                                  filteredProduct.description,
+                                  filteredProduct.price,
+                                  filteredProduct.category,
+                                  filteredProduct.image, i, () {
+                                    setState(() {});
+                                  });
+                              return;
+                            }
                             editProductSheet(context,
                                 product.name,
                                 product.description,
@@ -293,7 +318,7 @@ class _AddProductViewState extends State<AddProductView> {
             ),
               boxProducts.isEmpty ? const SizedBox() :
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                padding: const EdgeInsets.only(left: 50, right: 50, top: 10, bottom: 30),
                 child: ElevatedButton(onPressed: () {
                   showAppDialog(context,
                       "Are you sure?",
@@ -301,6 +326,7 @@ class _AddProductViewState extends State<AddProductView> {
                         setState(() {
                           boxProducts.clear();
                         });
+                        setState(() {});
                       });},
                     style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.green),

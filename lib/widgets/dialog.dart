@@ -41,8 +41,8 @@ Future showAppDialog(BuildContext context,
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
               onTap?.call();
+              Navigator.pop(context);
             },
             child: const Text("Proceed"),
           ),

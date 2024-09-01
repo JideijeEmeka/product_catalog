@@ -74,8 +74,8 @@ editProductSheet(BuildContext context,
                           padding: const EdgeInsets.only(top: 15, bottom: 20),
                           child: TextFormField(
                             controller: descriptionController,
-                            keyboardType: TextInputType.number,
-                            textInputAction: TextInputAction.done,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.next,
                             decoration: const InputDecoration(
                                 hintText: "describe the product",
                                 label: Text("Description"),
@@ -92,7 +92,7 @@ editProductSheet(BuildContext context,
                         TextFormField(
                           controller: priceController,
                           keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.done,
+                          textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                               label: Text("Price"),
                               hintText: "price of product",
@@ -176,17 +176,13 @@ editProductSheet(BuildContext context,
                           padding: const EdgeInsets.only(top: 30),
                           child: ElevatedButton(
                               onPressed: () {
-                                if(img.isEmpty) {
-                                  Navigator.pop(context);
-                                  return;
-                                }
                                 setState(() {
                                   boxProducts.putAt(i,
                                     Product(
                                       name: nameController.text,
                                       description: descriptionController.text,
                                       category: categoryController.text,
-                                      image: File(img).readAsBytesSync(),
+                                      image: img.isEmpty ? image : File(img).readAsBytesSync(),
                                       price: priceController.text));
                                 });
                                 Navigator.pop(context);
